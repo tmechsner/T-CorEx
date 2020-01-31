@@ -4,6 +4,7 @@ import numpy as np
 import itertools
 import os
 import json
+import pickle
 
 np.random.seed(42)
 
@@ -27,10 +28,10 @@ methods = [
         }),
     ]
 
-file_path = f'scores_p_m{m}.json'
+file_path = f'scores_p_m{m}.pkl'
 if os.path.isfile(file_path):
-    with open(file_path, 'r') as f:
-        scores_per_algo = json.load(f)
+    with open(file_path, 'rb') as f:
+        scores_per_algo = pickle.load(f)
 else:
     scores_per_algo = {}
 
@@ -78,15 +79,15 @@ for k, i in enumerate(r):
             best_score, _, _, _ = method.select(data, true_clusters, params, verbose=False)
             if name not in scores_per_algo:
                 scores_per_algo[name] = {}
-            if i not in scores_per_algo[name]:
-                scores_per_algo[name][i] = []
-            scores_per_algo[name][i].append(best_score)
+            if str(i) not in scores_per_algo[name]:
+                scores_per_algo[name][str(i)] = []
+            scores_per_algo[name][str(i)].append(best_score)
 
-        with open(file_path, 'w') as f:
-            json.dump(scores_per_algo, f)
+        with open(file_path, 'wb') as f:
+            pickle.dump(scores_per_algo, f)
 
-with open(file_path, 'w') as f:
-    json.dump(scores_per_algo, f)
+with open(file_path, 'wb') as f:
+    pickle.dump(scores_per_algo, f)
 
 
 scores_per_algo = {algo: {k: np.array([x[1] for x in v]) for k, v in itertools.groupby(results.items(), key=lambda entry: int(entry[0]))}
