@@ -1,3 +1,7 @@
+Reimplementing experiments from the original paper.
+ -- tmechsner
+
+
 # Correlation Explanation Methods
 Official implementation of linear correlation explanation (linear CorEx) and temporal correlation explanation (T-CorEx) methods.
 
