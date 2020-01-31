@@ -2,7 +2,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 
 from tcorex.experiments.data import load_modular_sudden_change
-from tcorex.experiments import baselines
+from tcorex.experiments import baselines_cov_est
 from tcorex import base
 from tcorex import TCorex
 from tcorex import covariance as cov_utils
@@ -89,7 +89,7 @@ def main():
 
     # We can also do grid search on a hyperparameter grid the following way.
     # NOTE: this can take time!
-    baseline, grid = (baselines.TCorex(tcorex=TCorex, name='T-Corex'), {
+    baseline, grid = (baselines_cov_est.TCorex(tcorex=TCorex, name='T-Corex'), {
         'nv': nv,
         'n_hidden': m,
         'max_iter': 500,

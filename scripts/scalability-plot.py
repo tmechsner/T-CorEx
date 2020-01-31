@@ -2,7 +2,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 
 from tcorex.experiments.data import load_modular_sudden_change
-from tcorex.experiments import baselines
+from tcorex.experiments import baselines_cov_est
 from tcorex.experiments.misc import make_sure_path_exists
 from tcorex import TCorex
 import argparse
@@ -21,7 +21,7 @@ def main():
 
     methods = [
         # memory error (for 32GB RAM) after 2048 (inclusive)
-        (baselines.TimeVaryingGraphLasso(name='T-GLASSO'), {
+        (baselines_cov_est.TimeVaryingGraphLasso(name='T-GLASSO'), {
             'lamb': 0.1,
             'beta': 1.0,
             'indexOfPenalty': 1,
@@ -29,7 +29,7 @@ def main():
             'lengthOfSlice': args.train_cnt,
         }),
 
-        (baselines.TCorex(tcorex=TCorex, name='T-Corex (pytorch, cpu)'), {
+        (baselines_cov_est.TCorex(tcorex=TCorex, name='T-Corex (pytorch, cpu)'), {
             'max_iter': 100,
             'anneal': True,
             'l1': 0.1,
@@ -39,7 +39,7 @@ def main():
             'device': 'cpu'
         }),
 
-        (baselines.TCorex(tcorex=TCorex, name='T-Corex (pytorch, cuda)'), {
+        (baselines_cov_est.TCorex(tcorex=TCorex, name='T-Corex (pytorch, cuda)'), {
             'max_iter': 100,
             'anneal': True,
             'l1': 0.1,
@@ -49,7 +49,7 @@ def main():
             'device': 'cuda'
         }),
 
-        (baselines.LTGL(name='LTGL'), {
+        (baselines_cov_est.LTGL(name='LTGL'), {
             'alpha': 3.0,
             'tau': 30.0,
             'beta': 30.0,
@@ -61,14 +61,14 @@ def main():
             'verbose': False
         }),
 
-        (baselines.QUIC(name='QUIC'), {
+        (baselines_cov_est.QUIC(name='QUIC'), {
             'lamb': 0.1,
             'tol': 1e-6,
             'msg': 1,
             'max_iter': 100
         }),
 
-        (baselines.BigQUIC(name='BigQUIC'), {
+        (baselines_cov_est.BigQUIC(name='BigQUIC'), {
             'lamb': 3,
             'tol': 1e-3,
             'verbose': 1,

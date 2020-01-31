@@ -164,7 +164,7 @@ class Diagonal(Baseline):
         finish_time = time.time()
         if verbose:
             print("\tElapsed time {:.1f}s".format(finish_time - start_time))
-        return covs, None
+        return covs, None, list(range(0, covs[0].shape[0]))
 
 
 class LedoitWolf(Baseline):
@@ -225,7 +225,7 @@ class PCA(Baseline):
         except Exception as e:
             covs = None
             if verbose:
-                print("\t{} failed with message: {}".format(self.name, e.message))
+                print(f"\t{self.name} failed with message: {e}")
         finish_time = time.time()
         if verbose:
             print("\tElapsed time {:.1f}s".format(finish_time - start_time))
@@ -262,7 +262,7 @@ class SparsePCA(Baseline):
         except Exception as e:
             covs = None
             if verbose:
-                print("\t{} failed with message: {}".format(self.name, e.message))
+                print(f"\t{self.name} failed with message: {e}")
         finish_time = time.time()
         if verbose:
             print("\tElapsed time {:.1f}s".format(finish_time - start_time))
@@ -287,7 +287,7 @@ class FactorAnalysis(Baseline):
         except Exception as e:
             covs = None
             if verbose:
-                print("\t{} failed with message: {}".format(self.name, e.message))
+                print(f"\t{self.name} failed with message: {e}")
         finish_time = time.time()
         if verbose:
             print("\tElapsed time {:.1f}s".format(finish_time - start_time))
@@ -306,13 +306,13 @@ class GraphLasso(Baseline):
         try:
             covs = []
             for x in train_data:
-                est = sk_cov.GraphLasso(alpha=params['alpha'],
-                                        max_iter=params['max_iter'])
+                est = sk_cov.GraphicalLasso(alpha=params['alpha'],
+                                            max_iter=params['max_iter'])
                 est.fit(x)
                 covs.append(est.covariance_)
         except Exception as e:
             if verbose:
-                print("\t{} failed with message: {}".format(self.name, e.message))
+                print(f"\t{self.name} failed with message: {e}")
             covs = None
         finish_time = time.time()
         if verbose:
@@ -434,7 +434,7 @@ class QUIC(Baseline):
         if verbose:
             print("Training {} ...".format(self.name))
         start_time = time.time()
-        os.chdir('tcorex/experiments/methods/QUIC')
+        os.chdir('tcorex/n_experiments/methods/QUIC')
 
         # create exp_id.m file to execute QUIC
         exp_id = random.randint(0, 2 ** 64)
@@ -479,7 +479,7 @@ class QUIC(Baseline):
 
     def timeit(self, train_data, params):
         start_time = time.time()
-        os.chdir('tcorex/experiments/methods/QUIC')
+        os.chdir('tcorex/n_experiments/methods/QUIC')
 
         # create exp_id.m file to execute QUIC
         exp_id = random.randint(0, 2 ** 64)
@@ -521,7 +521,7 @@ class BigQUIC(Baseline):
         if verbose:
             print("Training {} ...".format(self.name))
         start_time = time.time()
-        os.chdir('tcorex/experiments/methods/BigQUIC/bigquic')
+        os.chdir('tcorex/n_experiments/methods/BigQUIC/bigquic')
 
         exp_id = random.randint(0, 2 ** 64)
         covs = []
@@ -579,7 +579,7 @@ class BigQUIC(Baseline):
 
     def timeit(self, train_data, params):
         start_time = time.time()
-        os.chdir('tcorex/experiments/methods/BigQUIC/bigquic')
+        os.chdir('tcorex/n_experiments/methods/BigQUIC/bigquic')
 
         exp_id = random.randint(0, 2 ** 64)
         for X in train_data:

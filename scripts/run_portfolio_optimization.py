@@ -4,7 +4,7 @@ from __future__ import print_function
 
 from tcorex.experiments.data import load_sp500
 from tcorex.experiments.misc import make_sure_path_exists
-from tcorex.experiments import baselines
+from tcorex.experiments import baselines_cov_est
 from tcorex import TCorex
 
 from cvxopt import matrix, solvers
@@ -63,15 +63,15 @@ def main():
     n_hidden_grid = [16, 32]  # [16, 32, 64]
 
     methods = [
-        (baselines.LedoitWolf(name='Ledoit-Wolf'), {}),
+        (baselines_cov_est.LedoitWolf(name='Ledoit-Wolf'), {}),
 
-        (baselines.LinearCorex(name='Linear CorEx'), {
+        (baselines_cov_est.LinearCorex(name='Linear CorEx'), {
             'n_hidden': n_hidden_grid,
             'max_iter': 500,
             'anneal': True
         }),
 
-        (baselines.TCorex(tcorex=TCorex, name='T-Corex'), {
+        (baselines_cov_est.TCorex(tcorex=TCorex, name='T-Corex'), {
             'nv': nv,
             'n_hidden': n_hidden_grid,
             'max_iter': 500,
@@ -86,7 +86,7 @@ def main():
             'verbose': 1
         }),
 
-        (baselines.TimeVaryingGraphLasso(name='T-GLASSO'), {
+        (baselines_cov_est.TimeVaryingGraphLasso(name='T-GLASSO'), {
             'lamb': [0.03, 0.1, 0.3, 1.0, 3.0],
             'beta': [0.03, 0.1, 0.3, 1.0, 3.0, 10.0],
             'indexOfPenalty': [1],  # NOTE: L2 is very slow and gives bad results
@@ -94,7 +94,7 @@ def main():
             'lengthOfSlice': args.train_cnt
         }),
 
-        (baselines.LTGL(name='LTGL'), {
+        (baselines_cov_est.LTGL(name='LTGL'), {
             'alpha': [0.3, 1.0, 3.0, 10.0],
             'tau': [30.0, 100.0, 300.0, 1e3],
             'beta': [10.0, 30.0, 100.0],

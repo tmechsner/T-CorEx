@@ -4,7 +4,7 @@ from __future__ import print_function
 
 from tcorex.experiments.data import load_modular_smooth_change
 from tcorex.experiments.misc import make_sure_path_exists
-from tcorex.experiments import baselines
+from tcorex.experiments import baselines_cov_est
 from tcorex import TCorex, TCorexLearnable
 
 import numpy as np
@@ -15,9 +15,9 @@ import os
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--nt', type=int, help='number of buckets')
-    parser.add_argument('--m', type=int, help='number of latent factors')
-    parser.add_argument('--bs', type=int, help='block size')
+    parser.add_argument('--nt', type=int, default=10, help='number of buckets')
+    parser.add_argument('--m', type=int, default=4, help='number of latent factors')
+    parser.add_argument('--bs', type=int, default=10, help='block size')
     parser.add_argument('--train_cnt', default=16, type=int, help='number of train samples')
     parser.add_argument('--val_cnt', default=16, type=int, help='number of validation samples')
     parser.add_argument('--test_cnt', default=1000, type=int, help='number of test samples')
@@ -61,21 +61,21 @@ def main():
         tcorex_gamma_range = [1e-9, 0.1, 0.3]
 
     methods = [
-        (baselines.GroundTruth(name='Ground Truth',
-                               covs=ground_truth_covs,
-                               test_data=test_data), {}),
+        (baselines_cov_est.GroundTruth(name='Ground Truth',
+                                       covs=ground_truth_covs,
+                                       test_data=test_data), {}),
 
-        (baselines.Diagonal(name='Diagonal'), {}),
+        (baselines_cov_est.Diagonal(name='Diagonal'), {}),
 
-        (baselines.LedoitWolf(name='Ledoit-Wolf'), {}),
+        (baselines_cov_est.LedoitWolf(name='Ledoit-Wolf'), {}),
 
-        (baselines.OAS(name='Oracle approximating shrinkage'), {}),
+        (baselines_cov_est.OAS(name='Oracle approximating shrinkage'), {}),
 
-        (baselines.PCA(name='PCA'), {
+        (baselines_cov_est.PCA(name='PCA'), {
             'n_components': [args.m],
         }),
 
-        (baselines.SparsePCA(name='SparsePCA'), {
+        (baselines_cov_est.SparsePCA(name='SparsePCA'), {
             'n_components': [args.m],
             'alpha': [0.1, 0.3, 1.0, 3.0, 10.0, 30.0],
             'ridge_alpha': [0.01],
@@ -83,23 +83,23 @@ def main():
             'max_iter': 500,
         }),
 
-        (baselines.FactorAnalysis(name='Factor Analysis'), {
+        (baselines_cov_est.FactorAnalysis(name='Factor Analysis'), {
             'n_components': [args.m],
         }),
 
-        (baselines.GraphLasso(name='Graphical LASSO (sklearn)'), {
+        (baselines_cov_est.GraphLasso(name='Graphical LASSO (sklearn)'), {
             'alpha': [0.001, 0.003, 0.01, 0.03, 0.1, 0.3, 1, 3],
             'mode': 'lars',
             'max_iter': 500,
         }),
 
-        (baselines.LinearCorex(name='Linear CorEx'), {
+        (baselines_cov_est.LinearCorex(name='Linear CorEx'), {
             'n_hidden': [args.m],
             'max_iter': 500,
             'anneal': True,
         }),
 
-        (baselines.TimeVaryingGraphLasso(name='T-GLASSO'), {
+        (baselines_cov_est.TimeVaryingGraphLasso(name='T-GLASSO'), {
             'lamb': [0.03, 0.1, 0.3, 1.0, 3.0],
             'beta': [0.03, 0.1, 0.3, 1.0, 3.0, 10.0],
             'indexOfPenalty': [1],  # NOTE: L2 is very slow, gives bad results; Laplacian gives worse results
@@ -107,7 +107,7 @@ def main():
             'lengthOfSlice': args.train_cnt
         }),
 
-        (baselines.TimeVaryingGraphLasso(name='T-GLASSO (no reg)'), {
+        (baselines_cov_est.TimeVaryingGraphLasso(name='T-GLASSO (no reg)'), {
             'lamb': [0.01, 0.03, 0.1, 0.3, 1.0, 3.0],
             'beta': [0.0],
             'indexOfPenalty': [1],
@@ -115,7 +115,7 @@ def main():
             'lengthOfSlice': args.train_cnt
         }),
 
-        (baselines.TCorex(tcorex=TCorex, name='T-Corex (simple)'), {
+        (baselines_cov_est.TCorex(tcorex=TCorex, name='T-Corex (simple)'), {
             'nv': args.nv,
             'n_hidden': args.m,
             'max_iter': 500,
@@ -129,7 +129,7 @@ def main():
             'init': False,
         }),
 
-        (baselines.TCorex(tcorex=TCorex, name='T-Corex'), {
+        (baselines_cov_est.TCorex(tcorex=TCorex, name='T-Corex'), {
             'nv': args.nv,
             'n_hidden': [args.m],
             'max_iter': 500,
@@ -143,7 +143,7 @@ def main():
             'init': True,
         }),
 
-        (baselines.TCorex(tcorex=TCorex, name='T-Corex (weighted objective)'), {
+        (baselines_cov_est.TCorex(tcorex=TCorex, name='T-Corex (weighted objective)'), {
             'nv': args.nv,
             'n_hidden': [args.m],
             'max_iter': 500,
@@ -158,7 +158,7 @@ def main():
             'weighted_obj': True
         }),
 
-        (baselines.TCorex(tcorex=TCorex, name='T-Corex (no reg)'), {
+        (baselines_cov_est.TCorex(tcorex=TCorex, name='T-Corex (no reg)'), {
             'nv': args.nv,
             'n_hidden': [args.m],
             'max_iter': 500,
@@ -170,7 +170,7 @@ def main():
             'init': True,
         }),
 
-        (baselines.TCorex(tcorex=TCorex, name='T-Corex (no init)'), {
+        (baselines_cov_est.TCorex(tcorex=TCorex, name='T-Corex (no init)'), {
             'nv': args.nv,
             'n_hidden': [args.m],
             'max_iter': 500,
@@ -184,7 +184,7 @@ def main():
             'init': False,
         }),
 
-        (baselines.TCorex(tcorex=TCorexLearnable, name='T-Corex (learnable)'), {
+        (baselines_cov_est.TCorex(tcorex=TCorexLearnable, name='T-Corex (learnable)'), {
             'nv': args.nv,
             'n_hidden': [args.m],
             'max_iter': 500,
@@ -199,7 +199,7 @@ def main():
             'weighted_obj': True
         }),
 
-        (baselines.LVGLASSO(name='LVGLASSO'), {
+        (baselines_cov_est.LVGLASSO(name='LVGLASSO'), {
             'alpha': [0.03, 0.1, 0.3, 1.0, 3.0, 10.0],
             'tau': [1.0, 3.0, 10.0, 30.0, 100.0, 300.0],
             'rho': 1.0 / np.sqrt(args.train_cnt),  # NOTE works good, also rho doesn't change much
@@ -207,7 +207,7 @@ def main():
             'verbose': False
         }),
 
-        (baselines.LTGL(name='LTGL'), {
+        (baselines_cov_est.LTGL(name='LTGL'), {
             'alpha': [3.0, 10.0, 30.0, 1e2],
             'tau': [30.0, 100.0, 300.0, 1e3, 3e3],
             'beta': [1.0, 3.0, 10.0, 30.0, 100.0],
@@ -219,14 +219,14 @@ def main():
             'verbose': False
         }),
 
-        (baselines.QUIC(name='QUIC'), {
+        (baselines_cov_est.QUIC(name='QUIC'), {
             'lamb': [0.001, 0.003, 0.01, 0.03, 0.1, 0.3, 1, 3],
             'tol': 1e-6,
             'msg': 1,         # NOTE: 0 - no verbosity; 1 - just two lines; 2 - max verbosity
             'max_iter': 100,  # NOTE: tried 500, no improvement,
         }),
 
-        (baselines.BigQUIC(name='BigQUIC'), {
+        (baselines_cov_est.BigQUIC(name='BigQUIC'), {
             'lamb': [0.3, 1, 3, 10.0, 30.0],
             'tol': 1e-3,
             'verbose': 1,     # NOTE: 0 - no verbosity; 1 - just two lines; 2 - max verbosity

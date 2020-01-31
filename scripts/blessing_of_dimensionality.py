@@ -28,7 +28,7 @@ def main():
                         help='if true x_i will have random scales')
     parser.add_argument('--method', '-M', type=str, choices=['linearcorex', 'pycorex'],
                         default='pycorex', help='which implementation of corex to use')
-    parser.add_argument('--device', '-d', type=str, default='cuda:0',
+    parser.add_argument('--device', '-d', type=str, default='cpu',
                         help='which device to use for pytorch corex')
     parser.add_argument('--output_dir', '-o', type=str, default='outputs/blessing/')
     parser.set_defaults(random_scale=False)
@@ -56,8 +56,8 @@ def main():
                          optimizer_params={'lr': 0.01})
 
     # train and compute the clustering score
-    method.fit(data)
     true_clusters = np.arange(m).repeat(p//m, axis=0)
+    method.fit(data)
 
     if args.method == 'linearcorex':
         pred_clusters = method.mis.argmax(axis=0)
