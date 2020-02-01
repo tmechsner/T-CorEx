@@ -13,7 +13,7 @@ parser.add_argument('--n_hidden', '-m', default=64, type=int,
                     help='number of hidden variables')
 parser.add_argument('--p_exp_min', default=7, type=int,
                     help='exponent of min. number of observed variables')
-parser.add_argument('--p_exp_max', default=13, type=int,
+parser.add_argument('--p_exp_max', default=15, type=int,
                     help='exponent of max. number of observed variables')
 parser.add_argument('--snr', '-s', default=0.1, type=float,
                     help='signal-to-noise ratio')
