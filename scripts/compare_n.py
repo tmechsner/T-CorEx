@@ -6,7 +6,9 @@ from sklearn.model_selection import train_test_split
 import numpy as np
 import itertools
 import os
+import pickle
 import json
+from tcorex import TCorex
 
 
 m = 32
@@ -22,44 +24,85 @@ methods = [
     (baselines_cov_est.FactorAnalysis(name='Factor Analysis'), {}),
     (baselines_cov_est.GraphLasso(name='Graphical LASSO (sklearn)'), {}),
     (baselines_cov_est.LinearCorex(name='Linear CorEx'), {}),
+    (baselines_cov_est.TCorex(TCorex, name='T-CorEx'), {'nv': p}),
     (baselines_cov_est.LVGLASSO(name='LVGLASSO'), {})
 ]
 
-file_path = f'scores_n_m{m}.json'
+n_runs = 5
+
+file_path = f'scores_n_m{m}.pkl'
 if os.path.isfile(file_path):
-    with open(file_path, 'r') as f:
-        scores_per_algo = json.load(f)
+    with open(file_path, 'rb') as f:
+        scores_per_algo = pickle.load(f)
 else:
     scores_per_algo = {}
-    for i in range(3, 8):
-        n = 2 ** i
-        with open(f'outputs/blessing/best/blessing_experiment_n{n}_p{p}_m{m}.results.json', 'r') as f:
-            results = json.load(f)
 
-        for j in range(0, 5):
+n_min = 3
+n_max = 8
+r = list(range(n_min, n_max + 1))
+n_experiments = len(r)
+for k, i in enumerate(r):
+    n = 2 ** i
+    print("")
+    print(f"Experiment {k+1} of {n_experiments}: n=2^{i}={n}")
 
-            data, _ = data_tools.generate_approximately_modular(nv=p, m=m, ns=n + 1000, snr=0.1,
-                                                                num_extra_parents=0,
-                                                                num_correlated_zs=0,
-                                                                random_scale=False)
+    with open(f'outputs/blessing/best/blessing_experiment_n{n}_p{p}_m{m}.results.json', 'r') as f:
+        results = json.load(f)
 
-            train_data, test_data = train_test_split(data, test_size=1000, shuffle=True)
+    for j in range(0, n_runs):
 
-            for (method, params) in methods:
-                try:
-                    name = method.name
-                    best_score, _, _, _, _, best_ari = method.select([train_data], [test_data], results[name]['best_params'], verbose=False)
-                    if name not in scores_per_algo:
-                        scores_per_algo[name] = []
-                    scores_per_algo[name].append([i, best_score])
-                except Exception:
-                    pass
+        skip = True
+        for (method, _) in methods:
+            name = method.name
+            if name not in scores_per_algo \
+                    or str(i) not in scores_per_algo[name] \
+                    or len(scores_per_algo[name][str(i)]) <= j:
+                skip = False
+                break
 
-    with open(file_path, 'w') as f:
-        json.dump(scores_per_algo, f)
+        if skip:
+            print(f"Skipping run {j+1} of {n_runs} for n=2^{i}={n}")
+            continue
+
+        print("")
+        print(f"Starting run {j+1} of {n_runs} for n=2^{i}={n}")
+
+        data, _ = data_tools.generate_approximately_modular(nv=p, m=m, ns=n + 1000, snr=0.1,
+                                                            num_extra_parents=0,
+                                                            num_correlated_zs=0,
+                                                            random_scale=False)
+
+        train_data, test_data = train_test_split(data, test_size=1000, shuffle=True)
+
+        for (method, params) in methods:
+            best_score = 0
+            name = method.name
+            try:
+                if name in scores_per_algo \
+                        and str(i) in scores_per_algo[name] \
+                        and len(scores_per_algo[name][str(i)]) > j:
+                    print(f"Skipping {name}")
+                    continue
+                else:
+                    print(f"Doing {name}")
+                best_score, _, _, _, _, best_ari = method.select([train_data], [test_data], results[name]['best_params'] if name in results else params, verbose=False)
+            except Exception:
+                pass
+
+            if name not in scores_per_algo:
+                scores_per_algo[name] = {}
+            if str(i) not in scores_per_algo[name]:
+                scores_per_algo[name][str(i)] = []
+            scores_per_algo[name][str(i)].append(best_score)
+
+        with open(file_path, 'wb') as f:
+            pickle.dump(scores_per_algo, f)
+
+with open(file_path, 'wb') as f:
+    pickle.dump(scores_per_algo, f)
 
 
-scores_per_algo = {algo: {k: np.array([x[1] for x in v]) for k, v in itertools.groupby(results, key=lambda entry: entry[0])}
+scores_per_algo = {algo: {k: np.array([x[1] for x in v]) for k, v in itertools.groupby(results.items(), key=lambda entry: int(entry[0]))}
                    for algo, results in scores_per_algo.items()}
 
 score_means = {algo: list(map(lambda x: [x[0], x[1].mean()], agg.items())) for algo, agg in scores_per_algo.items()}

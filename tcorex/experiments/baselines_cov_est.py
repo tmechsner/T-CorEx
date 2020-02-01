@@ -164,7 +164,7 @@ class Diagonal(Baseline):
         finish_time = time.time()
         if verbose:
             print("\tElapsed time {:.1f}s".format(finish_time - start_time))
-        return covs, None, list(range(0, covs[0].shape[0]))
+        return covs, None
 
 
 class LedoitWolf(Baseline):
@@ -408,6 +408,10 @@ class TCorex(Baseline):
         start_time = time.time()
 
         params['nt'] = len(train_data)
+        try:
+            del params['__dummy__']
+        except Exception:
+            pass
         c = self.tcorex(**params)
         c.fit(train_data)
         covs = c.get_covariance()
