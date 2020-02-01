@@ -130,6 +130,29 @@ class PCA(Baseline):
         return clusters
 
 
+class ICA(Baseline):
+    def __init__(self, **kwargs):
+        super(ICA, self).__init__(**kwargs)
+
+    def _train(self, data, params, verbose):
+        import sklearn.decomposition as sk_dec
+        if verbose:
+            print("Training {} ...".format(self.name))
+        start_time = time.time()
+        try:
+            est = sk_dec.FastICA(n_components=params['n_components'])
+            est.fit(data)
+            clusters = np.argmax(est.components_, axis=0)
+        except Exception as e:
+            clusters = None
+            if verbose:
+                print(f"\t{self.name} failed with message: {e}")
+        finish_time = time.time()
+        if verbose:
+            print("\tElapsed time {:.1f}s".format(finish_time - start_time))
+        return clusters
+
+
 class FactorAnalysis(Baseline):
     def __init__(self, **kwargs):
         super(FactorAnalysis, self).__init__(**kwargs)
@@ -202,6 +225,63 @@ class LinearCorex(Baseline):
                               anneal=params['anneal'])
         c.fit(data)
         clusters = c.mis.argmax(axis=0)
+        finish_time = time.time()
+        if verbose:
+            print("\tElapsed time {:.1f}s".format(finish_time - start_time))
+        return clusters
+
+
+class KMeans(Baseline):
+    def __init__(self, **kwargs):
+        super(KMeans, self).__init__(**kwargs)
+
+    def _train(self, data, params, verbose):
+        from sklearn.cluster import KMeans
+        if verbose:
+            print("Training {} ...".format(self.name))
+        start_time = time.time()
+        data = data.T  # We want to cluster variables, not data points
+        c = KMeans(n_clusters=params['n_clusters'], random_state=13)
+        c.fit(data)
+        clusters = c.predict(data)
+        finish_time = time.time()
+        if verbose:
+            print("\tElapsed time {:.1f}s".format(finish_time - start_time))
+        return clusters
+
+
+class Spectral(Baseline):
+    def __init__(self, **kwargs):
+        super(Spectral, self).__init__(**kwargs)
+
+    def _train(self, data, params, verbose):
+        from sklearn.cluster import SpectralClustering
+        if verbose:
+            print("Training {} ...".format(self.name))
+        start_time = time.time()
+        data = data.T  # We want to cluster variables, not data points
+        c = SpectralClustering(n_clusters=params['n_clusters'], random_state=13)
+        c.fit(data)
+        clusters = c.labels_
+        finish_time = time.time()
+        if verbose:
+            print("\tElapsed time {:.1f}s".format(finish_time - start_time))
+        return clusters
+
+
+class Hierarchical(Baseline):
+    def __init__(self, **kwargs):
+        super(Hierarchical, self).__init__(**kwargs)
+
+    def _train(self, data, params, verbose):
+        from sklearn.cluster import AgglomerativeClustering
+        if verbose:
+            print("Training {} ...".format(self.name))
+        start_time = time.time()
+        data = data.T  # We want to cluster variables, not data points
+        c = AgglomerativeClustering(n_clusters=params['n_clusters'])
+        c.fit(data)
+        clusters = c.labels_
         finish_time = time.time()
         if verbose:
             print("\tElapsed time {:.1f}s".format(finish_time - start_time))
