@@ -1,7 +1,5 @@
 import matplotlib.pyplot as plt
 from tcorex.experiments import data as data_tools, baselines_cov_est
-from tcorex.experiments.misc import make_sure_path_exists
-from sklearn.metrics import adjusted_rand_score
 from sklearn.model_selection import train_test_split
 import numpy as np
 import itertools
@@ -11,7 +9,7 @@ import json
 from tcorex import TCorex
 
 
-m = 32
+m = 8
 p = 128
 
 true_clusters = np.arange(m).repeat(p // m, axis=0)
@@ -28,17 +26,22 @@ methods = [
     (baselines_cov_est.LVGLASSO(name='LVGLASSO'), {})
 ]
 
-n_runs = 5
 
 file_path = f'scores_n_m{m}.pkl'
 if os.path.isfile(file_path):
     with open(file_path, 'rb') as f:
         scores_per_algo = pickle.load(f)
+    for method, results in scores_per_algo.items():
+        for i, r in results.items():
+            for j, x in enumerate(r):
+                if x is None or x == 0.0:
+                    scores_per_algo[method][i][j] = np.inf
 else:
     scores_per_algo = {}
 
+n_runs = 5
 n_min = 3
-n_max = 8
+n_max = 10
 r = list(range(n_min, n_max + 1))
 n_experiments = len(r)
 for k, i in enumerate(r):
@@ -85,7 +88,7 @@ for k, i in enumerate(r):
                     continue
                 else:
                     print(f"Doing {name}")
-                best_score, _, _, _, _, best_ari = method.select([train_data], [test_data], results[name]['best_params'] if name in results else params, verbose=False)
+                best_score, _, _, _, _ = method.select([train_data], [test_data], results[name]['best_params'] if name in results else params, verbose=False)
             except Exception:
                 pass
 
@@ -93,6 +96,8 @@ for k, i in enumerate(r):
                 scores_per_algo[name] = {}
             if str(i) not in scores_per_algo[name]:
                 scores_per_algo[name][str(i)] = []
+            if best_score == 0 or best_score is None:
+                best_score = np.inf
             scores_per_algo[name][str(i)].append(best_score)
 
         with open(file_path, 'wb') as f:
@@ -105,11 +110,8 @@ with open(file_path, 'wb') as f:
 scores_per_algo = {algo: {k: np.array([x[1] for x in v]) for k, v in itertools.groupby(results.items(), key=lambda entry: int(entry[0]))}
                    for algo, results in scores_per_algo.items()}
 
-score_means = {algo: list(map(lambda x: [x[0], x[1].mean()], agg.items())) for algo, agg in scores_per_algo.items()}
-score_stds = {algo: list(map(lambda x: [x[0], x[1].std()], agg.items())) for algo, agg in scores_per_algo.items()}
-
-print(score_means)
-print(score_stds)
+score_means = {algo: list(map(lambda x: [x[0], np.nan_to_num(x[1]).mean()], agg.items())) for algo, agg in scores_per_algo.items()}
+score_stds = {algo: list(map(lambda x: [x[0], np.nan_to_num(x[1]).std()], agg.items())) for algo, agg in scores_per_algo.items()}
 
 plt.figure()
 for algo, results in score_means.items():
