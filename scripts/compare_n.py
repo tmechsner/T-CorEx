@@ -113,7 +113,7 @@ scores_per_algo = {algo: {k: np.array([x[1] for x in v]) for k, v in itertools.g
 score_means = {algo: list(map(lambda x: [x[0], np.nan_to_num(x[1]).mean()], agg.items())) for algo, agg in scores_per_algo.items()}
 score_stds = {algo: list(map(lambda x: [x[0], np.nan_to_num(x[1]).std()], agg.items())) for algo, agg in scores_per_algo.items()}
 
-plt.figure()
+plt.figure(figsize=(6,3))
 for algo, results in score_means.items():
     scores = np.array(results)
     stds = np.array(score_stds[algo])

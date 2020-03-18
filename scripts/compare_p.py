@@ -139,14 +139,14 @@ scores_per_algo = {algo: {k: np.array([x[1] for x in v]) for k, v in itertools.g
 score_means = {algo: list(map(lambda x: [x[0], x[1].mean()], agg.items())) for algo, agg in scores_per_algo.items()}
 score_stds = {algo: list(map(lambda x: [x[0], x[1].std()], agg.items())) for algo, agg in scores_per_algo.items()}
 
-plt.figure()
+plt.figure(figsize=(6,3))
 for algo, results in score_means.items():
     scores = np.array(results)
     stds = np.array(score_stds[algo])
     plt.errorbar(scores[:, 0], scores[:, 1], yerr=stds[:,1])
 plt.legend(list(scores_per_algo.keys()))
-plt.xlabel('p (log_2 # samples)')
-plt.ylabel('Adjusted Rand Index')
+plt.xlabel('p (log_2 # variables)')
+plt.ylabel('Cluster score - ARI')
 # plt.ylim(175, 175 + 80)
 plt.grid()
 plt.show()
